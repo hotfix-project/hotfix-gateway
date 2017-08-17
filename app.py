@@ -46,6 +46,8 @@ class MainHandler(tornado.web.RequestHandler):
         data = {
             "check_update": "http://%s/check_update" % (self.request.host),
             "report_update": "http://%s/report_update" % (self.request.host),
+            "custom_check_update": "http://%s/check_update" % (self.request.host),
+            "custom_report_update": "http://%s/report_update" % (self.request.host),
         }
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(data))
