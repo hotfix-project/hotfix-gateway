@@ -34,3 +34,6 @@ hotfix gateway
   * request
     * id: int
   * response
+    ```
+    {"message":"ok"}
+    ```
