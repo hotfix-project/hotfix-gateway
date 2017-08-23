@@ -1,7 +1,7 @@
 # hotfix-gateway
 hotfix gateway
 
-# rest api
+## rest api
 * GET /check_update?app_id={id}&version={version}
   * request
     * id: int
@@ -37,3 +37,8 @@ hotfix gateway
     ```
     {"message":"ok"}
     ```
+
+## Client workflow
+1. Check update
+2. Download patch&Decrypt patch&Verification patch&Apply patch
+3. Report update status
