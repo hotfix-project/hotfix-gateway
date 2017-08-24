@@ -9,7 +9,7 @@ hotfix gateway
   * response
     ```
     {
-    "status": "200",
+    "status": "20000112",
     "message": "ok",
     "result": {
         "id": 1,
@@ -36,7 +36,7 @@ hotfix gateway
     * id: int
   * response
     ```
-    {"status": "200", "message": "ok"}
+    {"status": "20000112", "message": "ok"}
     ```
 
 ## Client workflow
