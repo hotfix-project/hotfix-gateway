@@ -12,6 +12,7 @@ import redis
 try:
     import tornado.ioloop
     import tornado.web
+    import tornado.httpclient
     from tornado.options import parse_command_line, define, options
 except ImportError:
     print("logstorage service need tornado, please run depend.sh")
@@ -22,8 +23,11 @@ redis_context = {}
 define('debug', default=True, help='enable debug mode')
 define("port", default=8000, help="run on the given port", type=int)
 define("bind", default='0.0.0.0', help="run on the given ipaddr", type=str)
-define("reids-host", default='127.0.0.1', help="redis server ipaddr", type=int)
-define("redis-port", default=6379, help="reids server port", type=str)
+define("redis_host", default='127.0.0.1', help="redis server ipaddr", type=int)
+define("redis_port", default=6379, help="reids server port", type=str)
+define("backend_scheme", default='http', help="redis server ipaddr", type=str)
+define("backend_host", default='172.28.32.101', help="redis server ipaddr", type=str)
+define("backend_port", default=8000, help="reids server port", type=int)
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -41,11 +45,11 @@ class MainHandler(tornado.web.RequestHandler):
 
 class CheckUpdateHandler(tornado.web.RequestHandler):
     def get(self):
-        data = {
-            "message": "check_update ok",
-        }
-        self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        self.write(json.dumps(data))
+        endpoint = "/custom_check_update"
+        http_client = tornado.httpclient.HTTPClient()
+        url = "%s://%s:%s%s?%s" % (options.backend_scheme, options.backend_host, options.backend_port, endpoint, self.request.query)
+        response = http_client.fetch(url)
+        self.write(response.body)
 
     def compute_etag(self):
         return None
@@ -53,18 +57,18 @@ class CheckUpdateHandler(tornado.web.RequestHandler):
 
 class ReportUpdateHandler(tornado.web.RequestHandler):
     def get(self):
-        data = {
-            "message": "report_update ok",
-        }
-        self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        self.write(json.dumps(data))
+        endpoint = "/custom_report_update"
+        http_client = tornado.httpclient.HTTPClient()
+        url = "%s://%s:%s%s?%s" % (options.backend_scheme, options.backend_host, options.backend_port, endpoint, self.request.query)
+        response = http_client.fetch(url)
+        self.write(response.body)
 
     def compute_etag(self):
         return None
 
 
 def init_redis(context):
-    pool = redis.ConnectionPool(host='127.0.0.1', port=6379, max_connections=10)
+    pool = redis.ConnectionPool(host=options.redis_host, port=options.redis_port, max_connections=10)
     rds = redis.Redis(connection_pool=pool)
     try:
         print("redis_version:", rds.info()["redis_version"])
