@@ -6,7 +6,11 @@ hotfix gateway
 * Tornado 4.5.1
 * * [More](requirements.txt?raw=true)
 
-## rest api
+# Scalability
+All you need to do is start multiple instances
+
+
+## Rest api
 * GET /check_update?app_id={id}&version={version}
   * request
     * id: int
