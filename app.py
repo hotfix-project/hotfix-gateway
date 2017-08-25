@@ -33,8 +33,8 @@ define("backend_port", default=8000, help="reids server port", type=int)
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         data = {
-            "check_update": "http://172.28.32.103:%s/check_update" % (options.port),
-            "report_update": "http://172.28.32.103:%s/report_update" % (options.port),
+            "check_update": "http://%s/check_update" % (self.request.host),
+            "report_update": "http://%s/report_update" % (self.request.host),
         }
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(data))
