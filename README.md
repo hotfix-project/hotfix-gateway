@@ -1,6 +1,11 @@
 # hotfix-gateway
 hotfix gateway
 
+# Requirements
+* Python3.6
+* Tornado 4.5.1
+* * [More](requirements.txt?raw=true)
+
 ## rest api
 * GET /check_update?app_id={id}&version={version}
   * request
