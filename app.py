@@ -33,7 +33,7 @@ define("bind", default='0.0.0.0', help="run on the given ipaddr", type=str)
 define("redis_host", default='127.0.0.1', help="redis server ipaddr", type=int)
 define("redis_port", default=6379, help="reids server port", type=str)
 define("backend_scheme", default='http', help="redis server ipaddr", type=str)
-define("backend_host", default='192.168.1.193', help="redis server ipaddr", type=str)
+define("backend_host", default='172.28.32.101', help="redis server ipaddr", type=str)
 define("backend_port", default=8000, help="reids server port", type=int)
 define("max_clients", default=20, help="async http client max clients", type=int)
 
@@ -85,6 +85,8 @@ class ProxyHandler(tornado.web.RequestHandler):
     def _on_proxy(self, response):
         self.clear()
         self.set_status(response.code==599 and 500 or response.code)
+        for k,v in dict(response.headers).items():
+            self.set_header(k, v)
         if response.body is not None:
             self.write(response.body)
         else:
