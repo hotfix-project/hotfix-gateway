@@ -3,9 +3,6 @@
 
 import os
 import sys
-import uuid
-import base64
-import binascii
 import json
 import redis
 import logging
@@ -64,7 +61,7 @@ class ProxyHandler(tornado.web.RequestHandler):
     def _do_fetch(self, method):
         uri = self.request.uri
         url = "%s://%s:%s%s?%s" % (
-            options.backend_scheme, 
+            options.backend_scheme,
             options.backend_host,
             options.backend_port,
             uri,
@@ -123,12 +120,11 @@ def make_app():
 def main():
     parse_command_line()
     init_redis(redis_context)
-    logger.info("listen: %s:%d, pid: %s, redis version: %s", 
+    logger.info("listen: %s:%d, pid: %s, redis version: %s",
         options.bind,
         options.port,
         redis_context["pool"].pid,
-        redis_context["rds"].info()["redis_version"]
-    )
+        redis_context["rds"].info()["redis_version"])
     app = make_app()
     sockets = tornado.netutil.bind_sockets(options.port, options.bind, reuse_port=True)
     server = tornado.httpserver.HTTPServer(app)
