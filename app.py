@@ -83,7 +83,13 @@ class ProxyHandler(tornado.web.RequestHandler):
                 logger.error("Tornado signalled HTTPError %s", x)
 
     def _on_proxy(self, response):
-        self.write(response.body)
+        self.clear()
+        self.set_status(response.code==599 and 500 or response.code)
+        if response.body is not None:
+            self.write(response.body)
+        else:
+            self.set_header('Content-Type', 'application/json; charset=UTF-8')
+            self.write('{"status": %s", "message": "internal server error"}' % (response.code))
         self.finish()
 
     def compute_etag(self):
