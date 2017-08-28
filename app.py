@@ -33,7 +33,7 @@ define("bind", default='0.0.0.0', help="run on the given ipaddr", type=str)
 define("redis_host", default='127.0.0.1', help="redis server ipaddr", type=int)
 define("redis_port", default=6379, help="reids server port", type=str)
 define("backend_scheme", default='http', help="redis server ipaddr", type=str)
-define("backend_host", default='172.28.32.101', help="redis server ipaddr", type=str)
+define("backend_host", default='192.168.1.193', help="redis server ipaddr", type=str)
 define("backend_port", default=8000, help="reids server port", type=int)
 define("max_clients", default=20, help="async http client max clients", type=int)
 
@@ -60,12 +60,11 @@ class ProxyHandler(tornado.web.RequestHandler):
 
     def _do_fetch(self, method):
         uri = self.request.uri
-        url = "%s://%s:%s%s?%s" % (
+        url = "%s://%s:%s%s" % (
             options.backend_scheme,
             options.backend_host,
             options.backend_port,
             uri,
-            self.request.query
         )
         headers = dict(self.request.headers)
         try:
