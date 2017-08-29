@@ -28,14 +28,15 @@ except ImportError:
 redis_context = {}
 
 define('debug', default=True, help='enable debug mode')
-define("port", default=8001, help="run on the given port", type=int)
 define("bind", default='0.0.0.0', help="run on the given ipaddr", type=str)
-define("redis_host", default='127.0.0.1', help="redis server ipaddr", type=int)
-define("redis_port", default=6379, help="reids server port", type=str)
-define("backend_scheme", default='http', help="redis server ipaddr", type=str)
-define("backend_host", default='192.168.1.193', help="redis server ipaddr", type=str)
-define("backend_port", default=8000, help="reids server port", type=int)
+define("port", default=8001, help="run on the given port", type=int)
 define("max_clients", default=20, help="async http client max clients", type=int)
+define("redis_host", default='127.0.0.1', help="redis server ipaddr", type=int, group='redis')
+define("redis_port", default=6379, help="reids server port", type=str, group='redis')
+define("redis_ttl", default=60, help="reids key ttl", type=int, group='redis')
+define("backend_scheme", default='http', help="redis server ipaddr", type=str, group='backend')
+define("backend_host", default='192.168.1.193', help="redis server ipaddr", type=str, group='backend')
+define("backend_port", default=8000, help="reids server port", type=int, group='backend')
 
 
 class MainHandler(tornado.web.RequestHandler):
