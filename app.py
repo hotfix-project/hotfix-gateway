@@ -34,9 +34,9 @@ define("max_clients", default=20, help="async http client max clients", type=int
 define("redis_host", default='127.0.0.1', help="redis server ipaddr", type=int, group='redis')
 define("redis_port", default=6379, help="reids server port", type=str, group='redis')
 define("redis_ttl", default=60, help="reids key ttl", type=int, group='redis')
-define("backend_scheme", default='http', help="redis server ipaddr", type=str, group='backend')
-define("backend_host", default='192.168.1.193', help="redis server ipaddr", type=str, group='backend')
-define("backend_port", default=8000, help="reids server port", type=int, group='backend')
+define("backend_scheme", default='http', help="backend server ipaddr", type=str, group='backend')
+define("backend_host", default='172.28.32.101', help="backend server ipaddr", type=str, group='backend')
+define("backend_port", default=8000, help="backend server port", type=int, group='backend')
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -57,6 +57,25 @@ class MainHandler(tornado.web.RequestHandler):
 class ProxyHandler(tornado.web.RequestHandler):
     @asynchronous
     def get(self):
+        rds = redis_context["rds"]
+        if self.request.path == "/check_update":
+            print("### /check_update")
+        if self.request.path == "/report_update":
+            key = "status_%s" % (self.request.uri)
+            status = rds.get(key)
+            key = "response_%s" % (self.request.uri)
+            response = rds.get(key)
+            if response is not None:
+                if int(status) == 200:
+                    rds.hincrby("apply_count_hash", self.request.uri)
+                self.set_status(int(status))
+                self.write(response)
+                self.finish()
+                return
+        if self.request.path == "/custom_check_update":
+            print("### /custom_check_update")
+        if self.request.path == "/custom_report_update":
+            print("### /custom_report_update")
         self._do_fetch('GET')
 
     def _do_fetch(self, method):
@@ -82,9 +101,29 @@ class ProxyHandler(tornado.web.RequestHandler):
             else:
                 logger.error("Tornado signalled HTTPError %s", x)
 
+    def cache_check_update(self, status_code, response):
+        pass
+
+    def cache_report_update(self, status_code, response):
+        rds = redis_context["rds"]
+        key = "status_%s" % (self.request.uri)
+        rds.set(key, status_code, options.redis_ttl)
+        key = "response_%s" % (self.request.uri)
+        rds.set(key, response.body, options.redis_ttl)
+        rds.hsetnx("apply_count_hash", self.request.uri, 0)
+        if status_code == 200:
+            rds.hincrby("apply_count_hash", self.request.uri)
+
+    def cache_custom_check_update(self, status_code, response):
+        pass
+
+    def cache_custom_report_update(self, status_code, response):
+        pass
+
     def _on_proxy(self, response):
         self.clear()
-        self.set_status(response.code==599 and 500 or response.code)
+        status_code = response.code==599 and 500 or response.code
+        self.set_status(status_code)
         for k,v in dict(response.headers).items():
             self.set_header(k, v)
         if response.body is not None:
@@ -92,6 +131,16 @@ class ProxyHandler(tornado.web.RequestHandler):
         else:
             self.set_header('Content-Type', 'application/json; charset=UTF-8')
             self.write('{"status": %s", "message": "internal server error"}' % (response.code))
+
+        if self.request.path == "/check_update":
+            self.cache_check_update(status_code, response)
+        if self.request.path == "/report_update":
+            self.cache_report_update(status_code, response)
+        if self.request.path == "/custom_check_update":
+            self.cache_custom_check_update(status_code, response)
+        if self.request.path == "/custom_report_update":
+            self.cache_custom_report_update(status_code, response)
+
         self.finish()
 
     def compute_etag(self):
