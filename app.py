@@ -170,14 +170,6 @@ class ProxyHandler(tornado.web.RequestHandler):
         return None
 
 
-class CustomProxyHandler(ProxyHandler):
-    def get(self):
-        self.request.uri = self.request.uri.replace("custom_", "")
-        self.request.path = self.request.path.replace("custom_", "")
-        print(self.request.uri)
-        super().get()
-
-
 def init_redis(context):
     pool = redis.ConnectionPool(host=options.redis_host, port=options.redis_port, max_connections=10)
     rds = redis.Redis(connection_pool=pool)
@@ -198,8 +190,6 @@ def make_app():
 
     return tornado.web.Application([
         (r'/', MainHandler),
-        (r'/custom_check_update', CustomProxyHandler),
-        (r'/custom_report_update', CustomProxyHandler),
         (r'/check_update', ProxyHandler),
         (r'/report_update', ProxyHandler),
     ], **settings)
