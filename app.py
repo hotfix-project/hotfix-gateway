@@ -35,7 +35,7 @@ define("redis_host", default='127.0.0.1', help="redis server ipaddr", type=int, 
 define("redis_port", default=6379, help="reids server port", type=str, group='redis')
 define("redis_ttl", default=60, help="reids key ttl", type=int, group='redis')
 define("backend_scheme", default='http', help="backend server ipaddr", type=str, group='backend')
-define("backend_host", default='172.28.32.101', help="backend server ipaddr", type=str, group='backend')
+define("backend_host", default='127.0.0.1', help="backend server ipaddr", type=str, group='backend')
 define("backend_port", default=8000, help="backend server port", type=int, group='backend')
 
 
