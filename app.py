@@ -85,7 +85,7 @@ class ProxyHandler(BaseHandler):
             key = "response_%s" % (self.request.uri)
             response = rds.get(key)
             if response is not None and status is not None:
-                self.set_header("X-Cache-Lookup:", "Hit From Redis")
+                self.set_header("X-Cache-Lookup", "Hit From Redis")
                 if int(status) == 200:
                     data = json.loads(response)
                     released = data["result"]["patch"]["released"]
@@ -111,7 +111,7 @@ class ProxyHandler(BaseHandler):
             key = "response_%s" % (self.request.uri)
             response = rds.get(key)
             if response is not None and status is not None:
-                self.set_header("X-Cache-Lookup:", "Hit From Redis")
+                self.set_header("X-Cache-Lookup", "Hit From Redis")
                 if int(status) == 200:
                     rds.hincrby("apply_count_hash", self.request.uri)
                 self.set_status(int(status))
