@@ -39,7 +39,28 @@ define("backend_host", default='172.28.32.101', help="backend server ipaddr", ty
 define("backend_port", default=8000, help="backend server port", type=int, group='backend')
 
 
-class MainHandler(tornado.web.RequestHandler):
+class BaseHandler(tornado.web.RequestHandler):
+    def write_error(self, status_code, **kwargs):
+        self.set_status(status_code)
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        if status_code == 405:
+            data = {
+                "message": "method not allowed"
+            }
+        self.write(json.dumps(data))
+
+
+class PageNotFound(BaseHandler):
+    def get(self):
+        self.set_status(404)
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        data = {
+            "message": "not found"
+        }
+        self.write(json.dumps(data))
+
+
+class MainHandler(BaseHandler):
     def get(self):
         data = {
             "check_update": "http://%s/check_update" % (self.request.host),
@@ -54,7 +75,7 @@ class MainHandler(tornado.web.RequestHandler):
         return None
 
 
-class ProxyHandler(tornado.web.RequestHandler):
+class ProxyHandler(BaseHandler):
     @asynchronous
     def get(self):
         rds = redis_context["rds"]
@@ -192,6 +213,7 @@ def make_app():
         (r'/', MainHandler),
         (r'/check_update', ProxyHandler),
         (r'/report_update', ProxyHandler),
+        (r'.*', PageNotFound),
     ], **settings)
 
 
