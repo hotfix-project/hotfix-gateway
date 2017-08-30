@@ -78,6 +78,10 @@ class MainHandler(BaseHandler):
 class ProxyHandler(BaseHandler):
     @asynchronous
     def get(self):
+        app_id = self.get_argument('app_id', default="")
+        version = self.get_argument('version', default="")
+        patch_id = self.get_argument('patch_id', default="")
+        self.request.uri = "%s?app_id=%s&version=%s&patch_id=%s" % (self.request.path, app_id, version, patch_id)
         rds = redis_context["rds"]
         if self.request.path == "/check_update":
             key = "status_%s" % (self.request.uri)
