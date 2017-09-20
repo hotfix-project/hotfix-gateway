@@ -87,11 +87,11 @@ class ProxyHandler(BaseHandler):
             key = "status_%s" % (self.request.uri)
             status = rds.get(key)
             key = "response_%s" % (self.request.uri)
-            response = rds.get(key)
-            if response is not None and status is not None:
+            body = rds.get(key)
+            if body is not None and status is not None:
                 self.set_header("X-Cache-Lookup", "Hit From Redis")
                 if int(status) == 200:
-                    data = json.loads(response)
+                    data = json.loads(body)
                     released = data["result"]["patch"]["released"]
                     if len(released) == 1:
                         key = "patch_id=%d" % (data["result"]["patch"]["released"][0]["id"])
@@ -105,7 +105,8 @@ class ProxyHandler(BaseHandler):
                         else:
                             rds.hincrby("download_count_hash", key)
                 self.set_status(int(status))
-                self.write(response)
+                self.set_header('Content-Type', 'application/json; charset=UTF-8')
+                self.write(body)
                 self.finish()
                 return
             
@@ -113,13 +114,14 @@ class ProxyHandler(BaseHandler):
             key = "status_%s" % (self.request.uri)
             status = rds.get(key)
             key = "response_%s" % (self.request.uri)
-            response = rds.get(key)
-            if response is not None and status is not None:
-                self.set_header("X-Cache-Lookup", "Hit From Redis")
+            body = rds.get(key)
+            if body is not None and status is not None:
                 if int(status) == 200:
                     rds.hincrby("apply_count_hash", self.request.uri)
                 self.set_status(int(status))
-                self.write(response)
+                self.set_header('Content-Type', 'application/json; charset=UTF-8')
+                self.set_header("X-Cache-Lookup", "Hit From Redis")
+                self.write(body)
                 self.finish()
                 return
         self._do_fetch('GET')
@@ -147,14 +149,14 @@ class ProxyHandler(BaseHandler):
             else:
                 logger.error("Tornado signalled HTTPError %s", x)
 
-    def cache_check_update(self, status_code, response):
+    def cache_check_update(self, status_code, body):
         rds = redis_context["rds"]
         key = "status_%s" % (self.request.uri)
         rds.set(key, status_code, options.redis_ttl)
         key = "response_%s" % (self.request.uri)
-        rds.set(key, response.body, options.redis_ttl)
+        rds.set(key, body, options.redis_ttl)
         if status_code == 200:
-            data = json.loads(response.body)
+            data = json.loads(body)
             released = data["result"]["patch"]["released"]
             if len(released) == 1:
                 key = "patch_id=%s"%(released[0]["id"])
@@ -163,12 +165,12 @@ class ProxyHandler(BaseHandler):
                 rds.hsetnx("download_count_hash", key, 0)
                 rds.hincrby("download_count_hash", self.request.uri)
 
-    def cache_report_update(self, status_code, response):
+    def cache_report_update(self, status_code, body):
         rds = redis_context["rds"]
         key = "status_%s" % (self.request.uri)
         rds.set(key, status_code, options.redis_ttl)
         key = "response_%s" % (self.request.uri)
-        rds.set(key, response.body, options.redis_ttl)
+        rds.set(key, body, options.redis_ttl)
         rds.hsetnx("apply_count_hash", self.request.uri, 0)
         if status_code == 200:
             rds.hincrby("apply_count_hash", self.request.uri)
@@ -177,18 +179,22 @@ class ProxyHandler(BaseHandler):
         self.clear()
         status_code = response.code==599 and 500 or response.code
         self.set_status(status_code)
+
+        # TODO: cache to redis
         for k,v in dict(response.headers).items():
             self.set_header(k, v)
+
         if response.body is not None:
-            self.write(response.body)
+            body = response.body
         else:
-            self.set_header('Content-Type', 'application/json; charset=UTF-8')
-            self.write('{"status": %s", "message": "internal server error"}' % (response.code))
+            body = '{"status": %s", "message": "internal server error"}' % response.code
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(body)
 
         if self.request.path == "/check_update":
-            self.cache_check_update(status_code, response)
+            self.cache_check_update(status_code, body)
         if self.request.path == "/report_update":
-            self.cache_report_update(status_code, response)
+            self.cache_report_update(status_code, body)
 
         self.finish()
 
@@ -206,6 +212,11 @@ def init_redis():
         sys.exit(1)
     redis_context["pool"] = pool
     redis_context["rds"] = rds
+
+
+def flush_redis():
+    rds = redis_context["rds"]
+    rds.flushall()
 
 
 def make_app(settings_extra = {}):
