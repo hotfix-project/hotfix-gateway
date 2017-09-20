@@ -50,7 +50,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(json.dumps(data))
 
 
-class PageNotFound(BaseHandler):
+class PageNotFoundHandler(BaseHandler):
     def get(self):
         self.set_status(404)
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
@@ -219,7 +219,7 @@ def make_app():
         (r'/', MainHandler),
         (r'/check_update', ProxyHandler),
         (r'/report_update', ProxyHandler),
-        (r'.*', PageNotFound),
+        (r'.*', PageNotFoundHandler),
     ], **settings)
 
 
