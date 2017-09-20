@@ -47,7 +47,7 @@ class BaseHandler(tornado.web.RequestHandler):
             data = {
                 "message": "method not allowed"
             }
-        self.write(json.dumps(data))
+            self.write(json.dumps(data))
 
 
 class PageNotFoundHandler(BaseHandler):
@@ -148,7 +148,6 @@ class ProxyHandler(BaseHandler):
                 logger.error("Tornado signalled HTTPError %s", x)
 
     def cache_check_update(self, status_code, response):
-        print("cache_check_update")
         rds = redis_context["rds"]
         key = "status_%s" % (self.request.uri)
         rds.set(key, status_code, options.redis_ttl)
@@ -197,7 +196,7 @@ class ProxyHandler(BaseHandler):
         return None
 
 
-def init_redis(context):
+def init_redis():
     pool = redis.ConnectionPool(host=options.redis_host, port=options.redis_port, max_connections=10)
     rds = redis.Redis(connection_pool=pool)
     try:
@@ -205,15 +204,15 @@ def init_redis(context):
     except redis.exceptions.ConnectionError as e:
         logger.error(e)
         sys.exit(1)
-    context["pool"] = pool
-    context["rds"] = rds
+    redis_context["pool"] = pool
+    redis_context["rds"] = rds
 
 
-def make_app():
-    settings = {
-        'debug': options.debug,
+def make_app(settings_extra = {}):
+    settings_default = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
     }
+    settings = dict(settings_default, **settings_extra)
 
     return tornado.web.Application([
         (r'/', MainHandler),
@@ -225,7 +224,7 @@ def make_app():
 
 def main():
     parse_command_line()
-    init_redis(redis_context)
+    init_redis()
     logger.info("listen: %s:%d, pid: %s, redis version: %s",
         options.bind,
         options.port,
