@@ -43,10 +43,10 @@ class AESCipher(object):
 
 
 if __name__ == "__main__":
+    key = 'd4f7d2adf42c34a3'
+    # iv = Random.new().read(AES.block_size)
+    iv = "5c6ca7c26b1b068d"
     for i in range(1024*100):
-        key = 'd4f7d2adf42c34a3'
-        # iv = Random.new().read(AES.block_size)
-        iv = "5c6ca7c26b1b068d"
         message = Random.new().read(1) * i
         cipher = AESCipher(key=key, iv=iv)
         encrypted = cipher.encrypt(message)
