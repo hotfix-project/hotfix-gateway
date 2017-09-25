@@ -9,6 +9,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+from encrypt_json import encrypt_result
+
+key = 'd4f7d2adf42c34a3'
+iv = "5c6ca7c26b1b068d"
+
 try:
     import tornado.ioloop
     import tornado.web
@@ -106,7 +112,7 @@ class ProxyHandler(BaseHandler):
                             rds.hincrby("download_count_hash", key)
                 self.set_status(int(status))
                 self.set_header('Content-Type', 'application/json; charset=UTF-8')
-                self.write(body)
+                self.write(encrypt_result(key, iv, body))
                 self.finish()
                 return
             
@@ -121,7 +127,7 @@ class ProxyHandler(BaseHandler):
                 self.set_status(int(status))
                 self.set_header('Content-Type', 'application/json; charset=UTF-8')
                 self.set_header("X-Cache-Lookup", "Hit From Redis")
-                self.write(body)
+                self.write(encrypt_result(key, iv, body))
                 self.finish()
                 return
         self._do_fetch('GET')
@@ -176,9 +182,7 @@ class ProxyHandler(BaseHandler):
             rds.hincrby("apply_count_hash", self.request.uri)
 
     def _on_proxy(self, response):
-        self.clear()
         status_code = response.code==599 and 500 or response.code
-        self.set_status(status_code)
 
         # TODO: cache to redis
         for k,v in dict(response.headers).items():
@@ -189,13 +193,15 @@ class ProxyHandler(BaseHandler):
         else:
             body = '{"status": %s", "message": "internal server error"}' % response.code
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        self.write(body)
 
         if self.request.path == "/check_update":
             self.cache_check_update(status_code, body)
         if self.request.path == "/report_update":
             self.cache_report_update(status_code, body)
 
+        self.clear()
+        self.set_status(status_code)
+        self.write(encrypt_result(key, iv, body))
         self.finish()
 
     def compute_etag(self):
