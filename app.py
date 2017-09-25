@@ -10,7 +10,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-from encrypt_json import encrypt_result
+BIN_DIR = os.path.dirname(__file__)
+sys.path.append(os.path.join(BIN_DIR, 'misc/encrypt'))
+from encrypt_json import encrypt_result, decrypt_result
 
 key = 'd4f7d2adf42c34a3'
 iv = "5c6ca7c26b1b068d"
