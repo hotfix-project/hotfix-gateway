@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import aes
+from aes import AESCipher
 import json
 
 
@@ -9,7 +9,7 @@ def encrypt_result(key, iv, s):
     if "result" not in obj.keys():
         return s
     result = json.dumps(obj["result"])
-    cipher = aes.AESCipher(key=key, iv=iv)
+    cipher = AESCipher(key=key, iv=iv)
     encrypted = cipher.encrypt(result)
     obj["result"] = encrypted.decode("utf-8")
     return json.dumps(obj)
@@ -19,7 +19,7 @@ def decrypt_result(key, iv, s):
     obj = json.loads(s)
     if "result" not in obj.keys():
         return s
-    cipher = aes.AESCipher(key=key, iv=iv)
+    cipher = AESCipher(key=key, iv=iv)
     decrypted = cipher.decrypt(bytes(obj["result"], encoding='utf-8'))
     obj["result"] = json.loads(decrypted)
     return json.dumps(obj)
