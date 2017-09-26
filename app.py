@@ -14,8 +14,8 @@ BIN_DIR = os.path.dirname(__file__)
 sys.path.append(os.path.join(BIN_DIR, 'misc/encrypt'))
 from encrypt_json import encrypt_result, decrypt_result
 
-key = 'd4f7d2adf42c34a3'
-iv = "5c6ca7c26b1b068d"
+glb_key = 'd4f7d2adf42c34a3'
+glb_iv = "5c6ca7c26b1b068d"
 
 try:
     import tornado.ioloop
@@ -97,6 +97,7 @@ class ProxyHandler(BaseHandler):
             key = "response_%s" % (self.request.uri)
             body = rds.get(key)
             if body is not None and status is not None:
+                body = body.decode("utf-8")
                 self.set_header("X-Cache-Lookup", "Hit From Redis")
                 if int(status) == 200:
                     data = json.loads(body)
@@ -114,7 +115,7 @@ class ProxyHandler(BaseHandler):
                             rds.hincrby("download_count_hash", key)
                 self.set_status(int(status))
                 self.set_header('Content-Type', 'application/json; charset=UTF-8')
-                self.write(encrypt_result(key, iv, body))
+                self.write(encrypt_result(glb_key, glb_iv, body))
                 self.finish()
                 return
             
@@ -124,12 +125,13 @@ class ProxyHandler(BaseHandler):
             key = "response_%s" % (self.request.uri)
             body = rds.get(key)
             if body is not None and status is not None:
+                body = body.decode("utf-8")
                 if int(status) == 200:
                     rds.hincrby("apply_count_hash", self.request.uri)
                 self.set_status(int(status))
                 self.set_header('Content-Type', 'application/json; charset=UTF-8')
                 self.set_header("X-Cache-Lookup", "Hit From Redis")
-                self.write(encrypt_result(key, iv, body))
+                self.write(encrypt_result(glb_key, glb_iv, body))
                 self.finish()
                 return
         self._do_fetch('GET')
@@ -191,7 +193,7 @@ class ProxyHandler(BaseHandler):
             self.set_header(k, v)
 
         if response.body is not None:
-            body = response.body
+            body = response.body.decode("utf-8")
         else:
             body = '{"status": %s", "message": "internal server error"}' % response.code
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
@@ -203,7 +205,7 @@ class ProxyHandler(BaseHandler):
 
         self.clear()
         self.set_status(status_code)
-        self.write(encrypt_result(key, iv, body))
+        self.write(encrypt_result(glb_key, glb_iv, body))
         self.finish()
 
     def compute_etag(self):

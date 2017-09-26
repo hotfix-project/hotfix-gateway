@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
 
 from aes import AESCipher
 import json
 
 
 def encrypt_result(key, iv, s):
-    obj = json.loads(s)
+    s = s.replace("'", "\"")
+    obj = json.loads(s, encoding='utf-8')
     if "result" not in obj.keys():
         return s
     result = json.dumps(obj["result"])
@@ -16,7 +18,8 @@ def encrypt_result(key, iv, s):
 
 
 def decrypt_result(key, iv, s):
-    obj = json.loads(s)
+    s = s.replace("'", "\"")
+    obj = json.loads(s, encoding='utf-8')
     if "result" not in obj.keys():
         return s
     cipher = AESCipher(key=key, iv=iv)
@@ -33,7 +36,6 @@ if __name__ == "__main__":
     body_plaintext_2 = '{"status": 200, "message": "ok"}' 
     body_ciphertext_1 = '{"status": 200, "message": "ok", "result": "QsTubOGmgNQrq3XMy9ALHV9umA2l8ZwKNb0HpRyzxHSZSPckMKsqcA9UeUs6P+6uQtcqZSY/Ci9ub9q0X5K6xAEb49fUIyexdbbAFkqovjn803VGL2fsreB8A4uGgrGlHcd5uooKQO1pqHh1I0xOOyhrObD80l9ixOIp84K2YJWlbu2XfyxzT5dLP9JpkgoqklLhsTEvb2vIgJoIxWs7QbVzh+frxPd/M03uhgiZtRUdrQ//Wb/H2v6q5H0df9qtwUizmF82tIjhNYRYpxMybcqHMRlxvVxVc4bcT5dHVMw="}'
     body_ciphertext_2 = '{"status": 200, "message": "ok"}' 
-    body_plaintext_3 = '{"status": 200, "result": {"id": "79"}, "message": "ok"}'
     
     ret = encrypt_result(key, iv, body_plaintext_1)
     print(ret)
@@ -43,6 +45,3 @@ if __name__ == "__main__":
 
     print(ret)
     assert body_plaintext_1 == ret
-
-    print("$%s$" % (body_plaintext_3))
-    print(encrypt_result(key, iv, body_plaintext_3))

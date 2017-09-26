@@ -105,7 +105,7 @@ class TestHelloApp(AsyncHTTPTestCase):
         response_2 = self.fetch('/check_update?app_id=4&version=1.1.2', method="GET")
         self.assertEqual(response_2.code, 200)
         self.assertIn("Hit From Redis", str(response_2.headers))
-        #self.assertEqual(response_1.body, response_2.body)
+        self.assertEqual(response_1.body, response_2.body)
 
     def test_reportupdate_200_1(self):
         response_1 = self.fetch('/report_update?patch_id=79', method="GET")
@@ -114,7 +114,7 @@ class TestHelloApp(AsyncHTTPTestCase):
         response_2 = self.fetch('/report_update?patch_id=79', method="GET")
         self.assertEqual(response_2.code, 200)
         self.assertIn("Hit From Redis", str(response_2.headers))
-        #self.assertEqual(response_1.body, response_2.body)
+        self.assertEqual(response_1.body, response_2.body)
 
 if __name__ == '__main__':
     unittest.main()
