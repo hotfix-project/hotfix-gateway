@@ -5,6 +5,9 @@ from aes import AESCipher
 import json
 
 
+def encrypt_mock(key, iv, s):
+    return s
+
 def encrypt_result(key, iv, s):
     s = s.replace("'", "\"")
     obj = json.loads(s, encoding='utf-8')

@@ -116,6 +116,7 @@ class TestHelloApp(AsyncHTTPTestCase):
         self.assertIn("Hit From Redis", str(response_2.headers))
         self.assertEqual(response_1.body, response_2.body)
 
+
 if __name__ == '__main__':
     unittest.main()
 
